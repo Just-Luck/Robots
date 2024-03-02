@@ -3,17 +3,14 @@ package gui;
 import java.awt.Dimension;
 import java.awt.Toolkit;
 import java.awt.event.KeyEvent;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 import java.util.ResourceBundle;
 
 import javax.swing.*;
 
 import log.Logger;
 
-/**
- * Что требуется сделать:
- * 1. Метод создания меню перегружен функционалом и трудно читается.
- * Следует разделить его на серию более простых методов (или вообще выделить отдельный класс).
- */
 public class MainApplicationFrame extends JFrame {
     private final JDesktopPane desktopPane = new JDesktopPane();
     private final ResourceBundle bundle;
@@ -30,13 +27,18 @@ public class MainApplicationFrame extends JFrame {
         setContentPane(desktopPane);
 
 
-        LogWindow logWindow = createLogWindow();
-        addWindow(logWindow);
-
+        addWindow(createLogWindow());
         addWindow(new GameWindow(bundle, 400, 400));
 
         setJMenuBar(generateMenuBar());
-        setDefaultCloseOperation(EXIT_ON_CLOSE);
+        setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
+        addWindowListener(new WindowAdapter() {
+            @Override
+            public void windowClosing(WindowEvent e) {
+                ExitConfirm();
+            }
+        });
+
     }
 
     protected LogWindow createLogWindow() {
@@ -103,19 +105,21 @@ public class MainApplicationFrame extends JFrame {
         JMenu exitMenu = new JMenu(bundle.getString("quit"));
         exitMenu.setMnemonic(KeyEvent.VK_X);
         JMenuItem exitMenuItem = new JMenuItem(bundle.getString("ExitTheApplication"), KeyEvent.VK_S);
-        exitMenuItem.addActionListener((event) -> {
-            int confirm = JOptionPane.showOptionDialog(this,
-                    bundle.getString("quitQuestion"),
-                    bundle.getString("quitTitle"),
-                    JOptionPane.YES_NO_OPTION,
-                    JOptionPane.QUESTION_MESSAGE,
-                    null,
-                    new String[]{bundle.getString("yes"), bundle.getString("no")},
-                    null);
-            if (confirm == JOptionPane.YES_OPTION) System.exit(0);
-        });
+        exitMenuItem.addActionListener((event) -> dispatchEvent(new WindowEvent(this, WindowEvent.WINDOW_CLOSING)));
         exitMenu.add(exitMenuItem);
         return exitMenu;
+    }
+
+    private void ExitConfirm() {
+        int confirm = JOptionPane.showOptionDialog(this,
+                bundle.getString("quitQuestion"),
+                bundle.getString("quitTitle"),
+                JOptionPane.YES_NO_OPTION,
+                JOptionPane.QUESTION_MESSAGE,
+                null,
+                new String[]{bundle.getString("yes"), bundle.getString("no")},
+                null);
+        if (confirm == JOptionPane.YES_OPTION) setDefaultCloseOperation(EXIT_ON_CLOSE);
     }
 
     private void setLookAndFeel(String className) {

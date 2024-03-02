@@ -6,7 +6,6 @@ import java.util.concurrent.CopyOnWriteArrayList;
 
 public class LogWindowSource {
     private final int m_iQueueLength;
-
     private final ArrayList<LogEntry> m_messages;
     private final CopyOnWriteArrayList<LogChangeListener> m_listeners;
     private volatile LogChangeListener[] m_activeListeners;
@@ -27,10 +26,12 @@ public class LogWindowSource {
         m_activeListeners = null;
     }
 
-    public synchronized void append(LogLevel logLevel, String strMessage) {
+    public void append(LogLevel logLevel, String strMessage) {
         LogEntry entry = new LogEntry(logLevel, strMessage);
         if (size() >= m_iQueueLength) m_messages.remove(0);
-        m_messages.add(entry);
+        synchronized (this) {
+            m_messages.add(entry);
+        }
         LogChangeListener[] activeListeners = m_activeListeners;
         if (activeListeners == null) {
             synchronized (m_listeners) {
