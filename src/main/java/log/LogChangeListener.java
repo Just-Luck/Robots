@@ -1,6 +1,12 @@
+/**
+ * LogChangeListener - интерфейс для слушателя изменений в логе.
+ */
 package log;
 
 public interface LogChangeListener
 {
-    public void onLogChanged(); 
+    /**
+     * Вызывается при изменении лога.
+     */
+    public void onLogChanged();
 }

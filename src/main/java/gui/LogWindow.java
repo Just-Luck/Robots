@@ -1,3 +1,7 @@
+/**
+ * LogWindow - внутреннее окно, отображающее лог сообщений.
+ * Реализует интерфейс LogChangeListener для получения уведомлений об изменениях в логе.
+ */
 package gui;
 
 import java.awt.BorderLayout;
@@ -17,6 +21,12 @@ public class LogWindow extends JInternalFrame implements LogChangeListener
     private LogWindowSource m_logSource;
     private TextArea m_logContent;
 
+    /**
+     * Создает новое окно для отображения лога.
+     *
+     * @param logSource - источник лога, от которого будут получаться сообщения.
+     * @param bundle - ResourceBundle, содержащий локализованные строки для заголовка окна.
+     */
     public LogWindow(LogWindowSource logSource, ResourceBundle bundle)
     {
         super(bundle.getString("logWindowHeader"), true, true, true, true);
@@ -32,6 +42,9 @@ public class LogWindow extends JInternalFrame implements LogChangeListener
         updateLogContent();
     }
 
+    /**
+     * Обновляет содержимое окна лога.
+     */
     private void updateLogContent()
     {
         StringBuilder content = new StringBuilder();

@@ -1,3 +1,7 @@
+/**
+ * MainApplicationFrame - основное окно приложения.
+ * Оно содержит в себе внутренние окна, меню и обработчики событий.
+ */
 package gui;
 
 import java.awt.Dimension;
@@ -11,13 +15,20 @@ import javax.swing.*;
 
 import log.Logger;
 
-public class MainApplicationFrame extends JFrame {
+public class MainApplicationFrame extends JFrame
+{
     private final JDesktopPane desktopPane = new JDesktopPane();
     private final ResourceBundle bundle;
 
-    public MainApplicationFrame(ResourceBundle defaultBundle, int inset) {
-        //Make the big window be indented 50 pixels from each edge
-        //of the screen.
+    /**
+     * Создает новое основное окно приложения.
+     *
+     * @param defaultBundle - ResourceBundle по умолчанию, содержащий локализованные строки.
+     * @param inset - величина отступа от края экрана.
+     */
+    public MainApplicationFrame(ResourceBundle defaultBundle, int inset)
+    {
+        // Отступы окна от края экрана
         bundle = defaultBundle;
         Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
         setBounds(inset, inset,
@@ -26,10 +37,11 @@ public class MainApplicationFrame extends JFrame {
 
         setContentPane(desktopPane);
 
-
+        // Добавление внутренних окон
         addWindow(createLogWindow());
         addWindow(new GameWindow(bundle, 400, 400));
 
+        // Настройка меню
         setJMenuBar(generateMenuBar());
         setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
         addWindowListener(new WindowAdapter() {
@@ -41,7 +53,13 @@ public class MainApplicationFrame extends JFrame {
 
     }
 
-    protected LogWindow createLogWindow() {
+    /**
+     * Создает окно для отображения лога.
+     *
+     * @return LogWindow - созданное окно лога.
+     */
+    protected LogWindow createLogWindow()
+    {
         LogWindow logWindow = new LogWindow(Logger.getDefaultLogSource(), bundle);
         logWindow.setLocation(10, 10);
         logWindow.setSize(300, 800);
@@ -51,12 +69,24 @@ public class MainApplicationFrame extends JFrame {
         return logWindow;
     }
 
-    protected void addWindow(JInternalFrame frame) {
+    /**
+     * Добавляет внутреннее окно на рабочий стол.
+     *
+     * @param frame - внутреннее окно для добавления.
+     */
+    protected void addWindow(JInternalFrame frame)
+    {
         desktopPane.add(frame);
         frame.setVisible(true);
     }
 
-    private JMenuBar generateMenuBar() {
+    /**
+     * Генерирует строку меню для приложения.
+     *
+     * @return JMenuBar - строка меню приложения.
+     */
+    private JMenuBar generateMenuBar()
+    {
         JMenuBar menuBar = new JMenuBar();
 
         menuBar.add(createLookAndFeelMenu());
@@ -66,7 +96,13 @@ public class MainApplicationFrame extends JFrame {
         return menuBar;
     }
 
-    private JMenu createLookAndFeelMenu() {
+    /**
+     * Создает меню выбора внешнего вида приложения.
+     *
+     * @return JMenu - меню выбора внешнего вида.
+     */
+    private JMenu createLookAndFeelMenu()
+    {
         JMenu lookAndFeelMenu = new JMenu(bundle.getString("lookAndFeelMenu"));
         lookAndFeelMenu.setMnemonic(KeyEvent.VK_V);
         lookAndFeelMenu.getAccessibleContext().setAccessibleDescription(
@@ -89,7 +125,13 @@ public class MainApplicationFrame extends JFrame {
         return lookAndFeelMenu;
     }
 
-    private JMenu createTestMenu() {
+    /**
+     * Создает тестовое меню для добавления записей в лог.
+     *
+     * @return JMenu - тестовое меню для добавления записей в лог.
+     */
+    private JMenu createTestMenu()
+    {
         JMenu testMenu = new JMenu(bundle.getString("testMenu"));
         testMenu.setMnemonic(KeyEvent.VK_T);
         testMenu.getAccessibleContext().setAccessibleDescription(bundle.getString("testMenuDescription"));
@@ -101,7 +143,13 @@ public class MainApplicationFrame extends JFrame {
         return testMenu;
     }
 
-    private JMenu createExitMenu() {
+    /**
+     * Создает меню для выхода из приложения.
+     *
+     * @return JMenu - меню для выхода из приложения.
+     */
+    private JMenu createExitMenu()
+    {
         JMenu exitMenu = new JMenu(bundle.getString("quit"));
         exitMenu.setMnemonic(KeyEvent.VK_X);
         JMenuItem exitMenuItem = new JMenuItem(bundle.getString("ExitTheApplication"), KeyEvent.VK_S);
@@ -110,7 +158,11 @@ public class MainApplicationFrame extends JFrame {
         return exitMenu;
     }
 
-    private void ExitConfirm() {
+    /**
+     * Подтверждение выхода из приложения с выводом диалогового окна.
+     */
+    private void ExitConfirm()
+    {
         int confirm = JOptionPane.showOptionDialog(this,
                 bundle.getString("quitQuestion"),
                 bundle.getString("quitTitle"),
@@ -122,7 +174,13 @@ public class MainApplicationFrame extends JFrame {
         if (confirm == JOptionPane.YES_OPTION) setDefaultCloseOperation(EXIT_ON_CLOSE);
     }
 
-    private void setLookAndFeel(String className) {
+    /**
+     * Устанавливает внешний вид приложения.
+     *
+     * @param className - имя класса внешнего вида.
+     */
+    private void setLookAndFeel(String className)
+    {
         try {
             UIManager.setLookAndFeel(className);
             SwingUtilities.updateComponentTreeUI(this);
