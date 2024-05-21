@@ -1,192 +1,369 @@
-/**
- * MainApplicationFrame - основное окно приложения.
- * Оно содержит в себе внутренние окна, меню и обработчики событий.
- */
 package gui;
 
-import java.awt.Dimension;
-import java.awt.Toolkit;
-import java.awt.event.KeyEvent;
-import java.awt.event.WindowAdapter;
-import java.awt.event.WindowEvent;
+import java.awt.*;
+import java.awt.event.*;
+import java.beans.PropertyChangeListener;
+import java.beans.PropertyChangeSupport;
+import java.net.ResponseCache;
+import java.util.Locale;
+import java.util.Properties;
 import java.util.ResourceBundle;
-
 import javax.swing.*;
 
+import State.AbstractWindow;
 import log.Logger;
 
-public class MainApplicationFrame extends JFrame
-{
-    private final JDesktopPane desktopPane = new JDesktopPane();
-    private final ResourceBundle bundle;
+import model.RobotsLogic;
+import gui.GameWindow;
+
+/**
+ * Главное окно приложения, содержащее панель рабочего стола и меню.
+ */
+public class MainApplicationFrame extends JFrame {
 
     /**
-     * Создает новое основное окно приложения.
-     *
-     * @param defaultBundle - ResourceBundle по умолчанию, содержащий локализованные строки.
-     * @param inset - величина отступа от края экрана.
+     * Текущая локаль для локализации сообщений.
      */
-    public MainApplicationFrame(ResourceBundle defaultBundle, int inset)
-    {
-        // Отступы окна от края экрана
-        bundle = defaultBundle;
+    private Locale Locale = new Locale("ru");
+
+
+    /**
+     * Ресурсы для локализации сообщений.
+     */
+    private ResourceBundle messages = ResourceBundle.getBundle("resources", Locale);
+
+    /**
+     * Панель рабочего стола, на которой отображаются внутренние окна.
+     */
+    private JDesktopPane desktopPane;
+
+    private PropertyChangeSupport support = new PropertyChangeSupport(this);
+
+    /**
+     * Конструктор главного окна приложения.
+     */
+    public MainApplicationFrame() {
+        // Определяем отступы для размещения окна
+        Integer indent = 50;
         Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
-        setBounds(inset, inset,
-                screenSize.width - inset * 2,
-                screenSize.height - inset * 2);
+        final int indentedWidth = screenSize.width - indent * 2;
+        final int indentedHeight = screenSize.height - indent * 2;
 
-        setContentPane(desktopPane);
+        // Устанавливаем размеры и расположение окна
+        setBounds(indent, indent, indentedWidth, indentedHeight);
 
-        // Добавление внутренних окон
-        addWindow(createLogWindow());
-        addWindow(new GameWindow(bundle, 400, 400));
+        // Создаем и устанавливаем панель рабочего стола
+        setContentPane(createDesktopPane());
 
-        // Настройка меню
+        // Создаем и устанавливаем меню
         setJMenuBar(generateMenuBar());
-        setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
+
+        // Устанавливаем операцию по умолчанию при закрытии окна
+        setDefaultCloseOperation(EXIT_ON_CLOSE);
+
+        // Добавляем слушатель оконного события для закрытия
         addWindowListener(new WindowAdapter() {
             @Override
             public void windowClosing(WindowEvent e) {
-                ExitConfirm();
+                exitApplication();
             }
         });
+
 
     }
 
     /**
-     * Создает окно для отображения лога.
-     *
-     * @return LogWindow - созданное окно лога.
+     * Создает панель рабочего стола, где отображаются внутренние окна.
+     * @return Созданная панель рабочего стола.
      */
-    protected LogWindow createLogWindow()
-    {
-        LogWindow logWindow = new LogWindow(Logger.getDefaultLogSource(), bundle);
-        logWindow.setLocation(10, 10);
-        logWindow.setSize(300, 800);
-        setMinimumSize(logWindow.getSize());
-        logWindow.pack();
-        Logger.debug(bundle.getString("protocolWork"));
+    private JDesktopPane createDesktopPane() {
+        desktopPane = new JDesktopPane();
+        var logic = new RobotsLogic();
+
+        // Добавляем окна на панель рабочего стола
+
+        addWindow(createLogWindow(), 150, 350);
+        addWindow(new GameWindow(logic), 400, 400);
+        addWindow(new RobotInfo(logic), 150, 350);
+
+
+
+        // Загружаем состояние каждого окна
+        for (JInternalFrame frame : desktopPane.getAllFrames()) {
+            AbstractWindow abstractWindow = (AbstractWindow) frame;
+            abstractWindow.loadWindow();
+        }
+
+        return desktopPane;
+    }
+
+    /**
+     * Создает окно для отображения логов.
+     * @return Созданное окно для отображения логов.
+     */
+    protected LogWindow createLogWindow() {
+        LogWindow logWindow = new LogWindow(Logger.getDefaultLogSource());
+        Logger.debug(messages.getString("ProtocolIsWorking"));
         return logWindow;
     }
 
     /**
-     * Добавляет внутреннее окно на рабочий стол.
-     *
-     * @param frame - внутреннее окно для добавления.
+     * Добавляет окно на панель рабочего стола.
+     * @param frame Окно для добавления.
+     * @param width Ширина окна.
+     * @param height Высота окна.
      */
-    protected void addWindow(JInternalFrame frame)
-    {
+    protected void addWindow(JInternalFrame frame, int width, int height) {
         desktopPane.add(frame);
+        frame.setSize(width, height);
+        if(frame instanceof PropertyChangeListener propertyChangeListener)
+            addPropertyChangeListener(propertyChangeListener);
         frame.setVisible(true);
     }
 
     /**
-     * Генерирует строку меню для приложения.
-     *
-     * @return JMenuBar - строка меню приложения.
+     * Генерирует строку меню приложения.
+     * @return Сгенерированная строка меню.
      */
-    private JMenuBar generateMenuBar()
-    {
+    private JMenuBar generateMenuBar() {
         JMenuBar menuBar = new JMenuBar();
 
+        menuBar.add(createFileMenu());
         menuBar.add(createLookAndFeelMenu());
         menuBar.add(createTestMenu());
-        menuBar.add(createExitMenu());
+        menuBar.add(createLanguageMenu());
 
         return menuBar;
     }
 
-    /**
-     * Создает меню выбора внешнего вида приложения.
-     *
-     * @return JMenu - меню выбора внешнего вида.
-     */
-    private JMenu createLookAndFeelMenu()
-    {
-        JMenu lookAndFeelMenu = new JMenu(bundle.getString("lookAndFeelMenu"));
-        lookAndFeelMenu.setMnemonic(KeyEvent.VK_V);
-        lookAndFeelMenu.getAccessibleContext().setAccessibleDescription(
-                bundle.getString("lookAndFeelMenuDescription"));
 
-        JMenuItem systemLookAndFeel = new JMenuItem(bundle.getString("systemScheme"), KeyEvent.VK_S);
-        systemLookAndFeel.addActionListener((event) -> {
+
+    /**
+     * Создает меню файлов.
+     * @return Меню файлов.
+     */
+    private JMenu createFileMenu() {
+        var logic = new RobotsLogic();
+        JMenu menu = new JMenu(messages.getString("Menu"));
+        menu.setMnemonic(KeyEvent.VK_D);
+
+        menu.add(createMenuItem(messages.getString("NewGameWindow"), KeyEvent.VK_N, KeyStroke.getKeyStroke(KeyEvent.VK_R, ActionEvent.ALT_MASK), (event) -> {
+            GameWindow window = new GameWindow(logic);
+            addWindow(window, 400, 400);
+        }));
+
+        menu.add(createMenuItem(messages.getString("LogsWindow"), KeyEvent.VK_L, KeyStroke.getKeyStroke(KeyEvent.VK_L, ActionEvent.ALT_MASK), (event) -> {
+            LogWindow window = new LogWindow(Logger.getDefaultLogSource());
+            addWindow(window, 150, 350);
+        }));
+
+
+        menu.add(createMenuItem(messages.getString("Coordinates"), KeyEvent.VK_L, KeyStroke.getKeyStroke(KeyEvent.VK_L, ActionEvent.ALT_MASK), (event) -> {
+            RobotInfo window = new RobotInfo(logic);
+            addWindow(window, 300, 200);
+        }));
+
+
+        menu.add(exit());
+
+
+
+        return menu;
+    }
+
+    /**
+     * Создает элемент меню.
+     * @param text Текст элемента меню.
+     * @param mnemonic Мнемоника элемента меню.
+     * @param accelerator Горячая клавиша элемента меню.
+     * @param action Действие элемента меню.
+     * @return Созданный элемент меню.
+     */
+    private JMenuItem createMenuItem(String text, int mnemonic, KeyStroke accelerator, ActionListener action) {
+        JMenuItem item = new JMenuItem(text);
+        item.setMnemonic(mnemonic);
+        item.setAccelerator(accelerator);
+        item.addActionListener(action);
+        return item;
+    }
+
+    /**
+     * Создает меню оформления.
+     * @return Меню оформления.
+     */
+    private JMenu createLookAndFeelMenu() {
+        JMenu lookAndFeelMenu = new JMenu(messages.getString("DisplayMode"));
+        lookAndFeelMenu.setMnemonic(KeyEvent.VK_V);
+        lookAndFeelMenu.getAccessibleContext().setAccessibleDescription(messages.getString("ModeControl"));
+
+        lookAndFeelMenu.add(createMenuItem(messages.getString("SystemDiagram"), KeyEvent.VK_S, null, (event) -> {
             setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
             this.invalidate();
-        });
-        lookAndFeelMenu.add(systemLookAndFeel);
+        }));
 
-        JMenuItem crossplatformLookAndFeel = new JMenuItem(bundle.getString("universalScheme"), KeyEvent.VK_S);
-        crossplatformLookAndFeel.addActionListener((event) -> {
+        lookAndFeelMenu.add(createMenuItem(messages.getString("UniversalScheme"), KeyEvent.VK_U, null, (event) -> {
             setLookAndFeel(UIManager.getCrossPlatformLookAndFeelClassName());
             this.invalidate();
-        });
-        lookAndFeelMenu.add(crossplatformLookAndFeel);
+        }));
 
         return lookAndFeelMenu;
     }
 
     /**
-     * Создает тестовое меню для добавления записей в лог.
-     *
-     * @return JMenu - тестовое меню для добавления записей в лог.
+     * Создает меню тестирования.
+     * @return Меню тестирования.
      */
-    private JMenu createTestMenu()
-    {
-        JMenu testMenu = new JMenu(bundle.getString("testMenu"));
+    private JMenu createTestMenu() {
+        JMenu testMenu = new JMenu(messages.getString("Tests"));
         testMenu.setMnemonic(KeyEvent.VK_T);
-        testMenu.getAccessibleContext().setAccessibleDescription(bundle.getString("testMenuDescription"));
+        testMenu.getAccessibleContext().setAccessibleDescription(messages.getString("TestsCommands"));
 
-        JMenuItem addLogMessageItem = new JMenuItem(bundle.getString("logItem"), KeyEvent.VK_S);
-        addLogMessageItem.addActionListener((event) -> Logger.debug(bundle.getString("logDefaultMessage")));
+        JMenuItem addLogMessageItem = new JMenuItem(messages.getString("MessageLog"), KeyEvent.VK_S);
+        addLogMessageItem.addActionListener((event) -> {
+            Logger.debug(messages.getString("NewString"));
+        });
+
         testMenu.add(addLogMessageItem);
 
         return testMenu;
     }
 
-    /**
-     * Создает меню для выхода из приложения.
-     *
-     * @return JMenu - меню для выхода из приложения.
-     */
-    private JMenu createExitMenu()
-    {
-        JMenu exitMenu = new JMenu(bundle.getString("quit"));
-        exitMenu.setMnemonic(KeyEvent.VK_X);
-        JMenuItem exitMenuItem = new JMenuItem(bundle.getString("ExitTheApplication"), KeyEvent.VK_S);
-        exitMenuItem.addActionListener((event) -> dispatchEvent(new WindowEvent(this, WindowEvent.WINDOW_CLOSING)));
-        exitMenu.add(exitMenuItem);
-        return exitMenu;
+    private JMenu createLanguageMenu() {
+        JMenu languageMenu = new JMenu(messages.getString("Language"));
+        languageMenu.setMnemonic(KeyEvent.VK_T);
+
+        JMenuItem addLanguageRussian = new JMenuItem(messages.getString("Russian"));
+
+        JMenuItem addLanguageEnglish = new JMenuItem(messages.getString("Translit"));
+
+        addLanguageRussian.addActionListener((event) -> {
+            changeLocale(new Locale("ru", "RU"));
+        });
+
+
+
+        addLanguageEnglish.addActionListener((event) -> {
+            changeLocale(Locale.ENGLISH);
+        });
+
+        languageMenu.add(addLanguageRussian);
+
+        languageMenu.add(addLanguageEnglish);
+
+        return languageMenu;
     }
 
     /**
-     * Подтверждение выхода из приложения с выводом диалогового окна.
+     * Метод для изменения локали приложения и обновления интерфейса в соответствии с новой локалью.
+     * @param locale Новая локаль, которая будет установлена.
      */
-    private void ExitConfirm()
-    {
-        int confirm = JOptionPane.showOptionDialog(this,
-                bundle.getString("quitQuestion"),
-                bundle.getString("quitTitle"),
-                JOptionPane.YES_NO_OPTION,
-                JOptionPane.QUESTION_MESSAGE,
-                null,
-                new String[]{bundle.getString("yes"), bundle.getString("no")},
-                null);
-        if (confirm == JOptionPane.YES_OPTION) setDefaultCloseOperation(EXIT_ON_CLOSE);
+    private void changeLocale(Locale locale){
+        // Устанавливаем новую локаль
+        Locale = locale;
+
+        // Загружаем ресурсы для новой локали
+        messages = ResourceBundle.getBundle("resources", locale);
+
+        // Обновляем все текстовые элементы интерфейса
+        updateUIComponents(messages);
     }
 
     /**
-     * Устанавливает внешний вид приложения.
-     *
-     * @param className - имя класса внешнего вида.
+     * Метод для обновления текстовых компонентов интерфейса приложения на основе переданного ResourceBundle.
+     * @param bundle ResourceBundle, содержащий ресурсы для текущей локали.
      */
-    private void setLookAndFeel(String className)
-    {
+    private void updateUIComponents(ResourceBundle bundle) {
+        //Уведомляет всех слушателей о изменении локали и передает новый объект ResourceBundle.
+        support.firePropertyChange("changeLocale", null, bundle);
+
+        JMenuBar jMenuBar = getJMenuBar();
+        {
+            JMenu menuItem = jMenuBar.getMenu(0);
+            menuItem.setText(bundle.getString("Menu"));
+            menuItem.getItem(0).setText(bundle.getString("NewGameWindow"));
+            menuItem.getItem(1).setText(bundle.getString("LogsWindow"));
+            menuItem.getItem(2).setText(bundle.getString("Coordinates"));
+            menuItem.getItem(3).setText(bundle.getString("Exit"));
+
+
+        }
+
+        {
+            JMenu menuItem = jMenuBar.getMenu(1);
+            menuItem.setText(bundle.getString("DisplayMode"));
+            menuItem.getItem(0).setText(bundle.getString("UniversalScheme"));
+            menuItem.getItem(1).setText(bundle.getString("SystemDiagram"));
+
+        }
+        {
+            JMenu menuItem = jMenuBar.getMenu(2);
+            menuItem.setText(bundle.getString("Tests"));
+            menuItem.getItem(0).setText(bundle.getString("MessageLog"));
+        }
+        {
+            JMenu menuItem = jMenuBar.getMenu(3);
+            menuItem.setText(bundle.getString("Language"));
+            menuItem.getItem(0).setText(bundle.getString("Russian"));
+            menuItem.getItem(1).setText(bundle.getString("Translit"));
+        }
+    }
+
+
+    /**
+     * Устанавливает внешний вид.
+     * @param className Название класса внешнего вида.
+     */
+    private void setLookAndFeel(String className) {
         try {
             UIManager.setLookAndFeel(className);
             SwingUtilities.updateComponentTreeUI(this);
         } catch (ClassNotFoundException | InstantiationException
                  | IllegalAccessException | UnsupportedLookAndFeelException e) {
-            // just ignore
         }
     }
+
+    /**
+     * Вызывает диалоговое окно закрытия для каждого окна на панели рабочего стола.
+     */
+    private void callCloseDialog(){
+        for (JInternalFrame frame : desktopPane.getAllFrames()) {
+            AbstractWindow abstractWindow = (AbstractWindow) frame;
+            abstractWindow.saveWindow();
+        }
+    }
+
+    /**
+     * Завершает работу приложения.
+     */
+    private void exitApplication() {
+        UIManager.put("OptionPane.yesButtonText", messages.getString("Yes"));
+        UIManager.put("OptionPane.noButtonText", messages.getString("No"));
+
+        int confirmation = JOptionPane.showConfirmDialog(this, messages.getString("ConfirmationExitQuestion"),
+                messages.getString("ConfirmationExit"), JOptionPane.YES_NO_OPTION);
+        callCloseDialog();
+    }
+
+
+
+    /**
+     * Создает элемент меню "Выход".
+     * @return Элемент меню "Выход".
+     */
+    private JMenuItem exit() {
+        JMenuItem exitMenuItem = new JMenuItem(messages.getString("Exit"));
+
+        exitMenuItem.setMnemonic(KeyEvent.VK_Q);
+        exitMenuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_Q, ActionEvent.ALT_MASK));
+        exitMenuItem.addActionListener((event) -> {
+            exitApplication();
+        });
+        return exitMenuItem;
+    }
+
+    public void addPropertyChangeListener(PropertyChangeListener listener) {
+        support.addPropertyChangeListener(listener);
+    }
+
+
 }

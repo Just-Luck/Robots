@@ -1,35 +1,34 @@
-/**
- * LogWindow - внутреннее окно, отображающее лог сообщений.
- * Реализует интерфейс LogChangeListener для получения уведомлений об изменениях в логе.
- */
 package gui;
 
 import java.awt.BorderLayout;
 import java.awt.EventQueue;
 import java.awt.TextArea;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
+import java.util.Locale;
 import java.util.ResourceBundle;
-
-import javax.swing.JInternalFrame;
 import javax.swing.JPanel;
 
+import State.AbstractWindow;
 import log.LogChangeListener;
 import log.LogEntry;
 import log.LogWindowSource;
 
-public class LogWindow extends JInternalFrame implements LogChangeListener
-{
-    private LogWindowSource m_logSource;
-    private TextArea m_logContent;
 
-    /**
-     * Создает новое окно для отображения лога.
-     *
-     * @param logSource - источник лога, от которого будут получаться сообщения.
-     * @param bundle - ResourceBundle, содержащий локализованные строки для заголовка окна.
-     */
-    public LogWindow(LogWindowSource logSource, ResourceBundle bundle)
-    {
-        super(bundle.getString("logWindowHeader"), true, true, true, true);
+public class LogWindow extends AbstractWindow implements LogChangeListener, PropertyChangeListener
+{
+    private final LogWindowSource m_logSource;
+    private final TextArea m_logContent;
+
+    public LogWindow(LogWindowSource logSource) {
+        super();
+
+        setTitle("Окно логов");
+        setResizable(true);
+        setClosable(true);
+        setMaximizable(true);
+        setIconifiable(true);
+
         m_logSource = logSource;
         m_logSource.registerListener(this);
         m_logContent = new TextArea("");
@@ -42,14 +41,9 @@ public class LogWindow extends JInternalFrame implements LogChangeListener
         updateLogContent();
     }
 
-    /**
-     * Обновляет содержимое окна лога.
-     */
-    private void updateLogContent()
-    {
+    private void updateLogContent() {
         StringBuilder content = new StringBuilder();
-        for (LogEntry entry : m_logSource.all())
-        {
+        for (LogEntry entry : m_logSource.all()) {
             content.append(entry.getMessage()).append("\n");
         }
         m_logContent.setText(content.toString());
@@ -57,8 +51,16 @@ public class LogWindow extends JInternalFrame implements LogChangeListener
     }
 
     @Override
-    public void onLogChanged()
-    {
+    public void onLogChanged() {
         EventQueue.invokeLater(this::updateLogContent);
+    }
+
+
+    @Override
+    public void propertyChange(PropertyChangeEvent evt) {
+        if("changeLocale".equals(evt.getPropertyName())){
+            ResourceBundle bundle = (ResourceBundle)evt.getNewValue();
+            setTitle(bundle.getString("LogsWindow"));
+        }
     }
 }

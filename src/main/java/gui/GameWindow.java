@@ -1,33 +1,51 @@
-/**
- * GameWindow - внутреннее окно, представляющее игровое окно в графическом пользовательском интерфейсе.
- * Оно содержит в себе компонент GameVisualizer для отображения игровой сцены.
- */
 package gui;
 
 import java.awt.BorderLayout;
-
-import javax.swing.JInternalFrame;
-import javax.swing.JPanel;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
 import java.util.ResourceBundle;
+import javax.swing.JPanel;
 
-public class GameWindow extends JInternalFrame
+import State.AbstractWindow;
+import model.RobotsLogic;
+
+public class GameWindow extends AbstractWindow implements PropertyChangeListener
 {
 
-    /**
-     * Создает новое игровое окно.
-     *
-     * @param bundle - ResourceBundle, содержащий локализованные строки для заголовка игрового окна.
-     * @param width - ширина игрового окна.
-     * @param height - высота игрового окна.
-     */
-    public GameWindow(ResourceBundle bundle, int width, int height)
-    {
-        super(bundle.getString("gameWindowHeader"), true, true, true, true);
-        GameVisualizer m_visualizer = new GameVisualizer();
+    private final RobotsLogic logic;
+
+    public GameWindow(RobotsLogic logic) {
+        super();
+
+        this.logic = logic;
+
+        logic.startTimer();
+
+        setTitle("Игровое окно");
+        setResizable(true);
+        setClosable(true);
+        setMaximizable(true);
+        setIconifiable(true);
+
+        GameVisualizer gameVisualizer = new GameVisualizer(logic);
+
         JPanel panel = new JPanel(new BorderLayout());
-        panel.add(m_visualizer, BorderLayout.CENTER);
+        panel.add(gameVisualizer, BorderLayout.CENTER);
         getContentPane().add(panel);
         pack();
-        setSize(width, height);
+    }
+
+    public void dispose() {
+        super.dispose();
+
+        logic.stopTimer();
+    }
+
+    @Override
+    public void propertyChange(PropertyChangeEvent evt) {
+        if("changeLocale".equals(evt.getPropertyName())){
+            ResourceBundle bundle = (ResourceBundle)evt.getNewValue();
+            setTitle(bundle.getString("NewGameWindow"));
+        }
     }
 }
