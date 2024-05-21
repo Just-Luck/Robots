@@ -3,7 +3,9 @@ package log;
 public final class Logger
 {
     private static final LogWindowSource defaultLogSource;
-    static {
+
+    static
+    {
         defaultLogSource = new LogWindowSource(5);
     }
 
@@ -11,14 +13,14 @@ public final class Logger
     {
     }
 
-    public static void debug(String strMessage)
+    public static void debug(String message)
     {
-        defaultLogSource.append(LogLevel.Debug, strMessage);
+        defaultLogSource.append(LogLevel.Debug, message);
     }
 
-    public static void error(String strMessage)
+    public static void error(String message)
     {
-        defaultLogSource.append(LogLevel.Error, strMessage);
+        defaultLogSource.append(LogLevel.Error, message);
     }
 
     public static LogWindowSource getDefaultLogSource()

@@ -13,12 +13,19 @@ import log.LogChangeListener;
 import log.LogEntry;
 import log.LogWindowSource;
 
-
+/**
+ * Окно для отображения логов приложения.
+ */
 public class LogWindow extends AbstractWindow implements LogChangeListener, PropertyChangeListener
 {
-    private final LogWindowSource m_logSource;
-    private final TextArea m_logContent;
+    private final LogWindowSource logSource;
+    private final TextArea logContent;
 
+    /**
+     * Конструктор окна логов.
+     *
+     * @param logSource источник логов
+     */
     public LogWindow(LogWindowSource logSource)
     {
         super();
@@ -29,41 +36,52 @@ public class LogWindow extends AbstractWindow implements LogChangeListener, Prop
         setMaximizable(true);
         setIconifiable(true);
 
-        m_logSource = logSource;
-        m_logSource.registerListener(this);
-        m_logContent = new TextArea("");
-        m_logContent.setSize(200, 500);
+        this.logSource = logSource;
+        this.logContent = new TextArea("");
+        this.logContent.setSize(200, 500);
+
+        logSource.registerListener(this);
 
         JPanel panel = new JPanel(new BorderLayout());
-        panel.add(m_logContent, BorderLayout.CENTER);
+        panel.add(logContent, BorderLayout.CENTER);
         getContentPane().add(panel);
         pack();
         updateLogContent();
     }
 
+    /**
+     * Обновляет содержимое логов.
+     */
     private void updateLogContent()
     {
         StringBuilder content = new StringBuilder();
-        for (LogEntry entry : m_logSource.all())
+        for (LogEntry entry : logSource.all())
         {
             content.append(entry.getMessage()).append("\n");
         }
-        m_logContent.setText(content.toString());
-        m_logContent.invalidate();
+        logContent.setText(content.toString());
     }
 
+    /**
+     * Обработчик изменений в логах.
+     */
     @Override
     public void onLogChanged()
     {
         EventQueue.invokeLater(this::updateLogContent);
     }
 
+    /**
+     * Обработчик изменения языка интерфейса.
+     *
+     * @param evt событие изменения языка
+     */
     @Override
     public void propertyChange(PropertyChangeEvent evt)
     {
-        if("changeLocale".equals(evt.getPropertyName()))
+        if ("changeLocale".equals(evt.getPropertyName()))
         {
-            ResourceBundle bundle = (ResourceBundle)evt.getNewValue();
+            ResourceBundle bundle = (ResourceBundle) evt.getNewValue();
             setTitle(bundle.getString("LogsWindow"));
         }
     }

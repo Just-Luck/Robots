@@ -2,66 +2,57 @@ package log;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.List;
 
-/**
- * Что починить:
- * 1. Этот класс порождает утечку ресурсов (связанные слушатели оказываются
- * удерживаемыми в памяти)
- * 2. Этот класс хранит активные сообщения лога, но в такой реализации он
- * их лишь накапливает. Надо же, чтобы количество сообщений в логе было ограничено
- * величиной m_iQueueLength (т.е. реально нужна очередь сообщений
- * ограниченного размера)
- */
 public class LogWindowSource
 {
-    private int m_iQueueLength;
+    private final int queueLength;
+    private final CircularLogBuffer<LogEntry> messages;
+    private final List<LogChangeListener> listeners;
+    private volatile LogChangeListener[] activeListeners;
 
-    private CircularLogBuffer<LogEntry> m_messages;
-    private final ArrayList<LogChangeListener> m_listeners;
-    private volatile LogChangeListener[] m_activeListeners;
-
-    public LogWindowSource(int iQueueLength)
+    public LogWindowSource(int queueLength)
     {
-        m_iQueueLength = iQueueLength;
-        m_messages = new CircularLogBuffer<>(iQueueLength);
-        m_listeners = new ArrayList<LogChangeListener>();
+        this.queueLength = queueLength;
+        this.messages = new CircularLogBuffer<>(queueLength);
+        this.listeners = new ArrayList<>();
     }
 
     public void registerListener(LogChangeListener listener)
     {
-        synchronized(m_listeners)
+        synchronized (listeners)
         {
-            m_listeners.add(listener);
-            m_activeListeners = null;
+            listeners.add(listener);
+            activeListeners = null;
         }
     }
 
     public void unregisterListener(LogChangeListener listener)
     {
-        synchronized(m_listeners)
+        synchronized (listeners)
         {
-            m_listeners.remove(listener);
-            m_activeListeners = null;
+            listeners.remove(listener);
+            activeListeners = null;
         }
     }
 
-    public void append(LogLevel logLevel, String strMessage)
+    public void append(LogLevel logLevel, String message)
     {
-        LogEntry entry = new LogEntry(logLevel, strMessage);
-        m_messages.append(entry);
-        LogChangeListener [] activeListeners = m_activeListeners;
-        if (activeListeners == null)
+        LogEntry entry = new LogEntry(logLevel, message);
+        messages.append(entry);
+        LogChangeListener[] currentListeners = activeListeners;
+        if (currentListeners == null)
         {
-            synchronized (m_listeners)
+            synchronized (listeners)
             {
-                if (m_activeListeners == null)
+                if (activeListeners == null)
                 {
-                    activeListeners = m_listeners.toArray(new LogChangeListener [0]);
-                    m_activeListeners = activeListeners;
+                    currentListeners = listeners.toArray(new LogChangeListener[0]);
+                    activeListeners = currentListeners;
                 }
             }
         }
-        for (LogChangeListener listener : activeListeners)
+        for (LogChangeListener listener : currentListeners)
         {
             listener.onLogChanged();
         }
@@ -69,21 +60,21 @@ public class LogWindowSource
 
     public int size()
     {
-        return m_messages.size();
+        return messages.size();
     }
 
     public Iterable<LogEntry> range(int startFrom, int count)
     {
-        if (startFrom < 0 || startFrom >= m_messages.size())
+        if (startFrom < 0 || startFrom >= messages.size())
         {
             return Collections.emptyList();
         }
-        int indexTo = Math.min(startFrom + count, m_messages.size());
-        return m_messages.range(startFrom, indexTo);
+        int indexTo = Math.min(startFrom + count, messages.size());
+        return messages.range(startFrom, indexTo);
     }
 
     public Iterable<LogEntry> all()
     {
-        return m_messages.all();
+        return messages.all();
     }
 }

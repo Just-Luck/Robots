@@ -8,12 +8,10 @@ import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.ReentrantLock;
 
 /**
- * Кольцевой буфер журнала, который реализует хранение элементов в кольцевом массиве.
- * Он обеспечивает потокобезопасность при многопоточном доступе к буферу.
- *
- * @param <T> тип элементов, хранимых в буфере
+ * Кольцевой буфер для хранения журнала записей логов.
+ * @param <T> тип элементов, хранящихся в буфере
  */
-public class CircularLogBuffer <T>
+public class CircularLogBuffer<T>
 {
     private final T[] buffer;
     private int size;
@@ -24,8 +22,7 @@ public class CircularLogBuffer <T>
     private final Condition notEmpty;
 
     /**
-     * Создает новый кольцевой буфер с указанной емкостью.
-     *
+     * Конструктор кольцевого буфера.
      * @param capacity емкость буфера
      */
     public CircularLogBuffer(int capacity)
@@ -39,11 +36,9 @@ public class CircularLogBuffer <T>
         notEmpty = lock.newCondition();
     }
 
-
     /**
-     * Добавляет элемент в буфер. Если буфер полон, поток блокируется до освобождения места.
-     *
-     * @param entry элемент, который необходимо добавить в буфер
+     * Добавляет запись в буфер.
+     * @param entry запись для добавления
      */
     public void append(LogEntry entry)
     {
@@ -53,7 +48,7 @@ public class CircularLogBuffer <T>
             if (size == buffer.length)
             {
                 start = (start + 1) % buffer.length;
-                size--; // Уменьшаем размер буфера при добавлении нового элемента при полном буфере
+                size--;
             }
             buffer[end] = (T) entry;
             end = (end + 1) % buffer.length;
@@ -66,11 +61,10 @@ public class CircularLogBuffer <T>
     }
 
     /**
-     * Возвращает итератор, позволяющий перебирать элементы буфера начиная с указанного индекса.
-     *
-     * @param startFrom индекс, с которого начинается перебор
-     * @param count количество элементов, которые нужно вернуть
-     * @return итератор, позволяющий перебирать элементы буфера
+     * Возвращает диапазон записей из буфера.
+     * @param startFrom начальный индекс
+     * @param count количество записей
+     * @return список записей в указанном диапазоне
      */
     public Iterable<LogEntry> range(int startFrom, int count)
     {
@@ -96,9 +90,8 @@ public class CircularLogBuffer <T>
     }
 
     /**
-     * Возвращает текущий размер буфера.
-     *
-     * @return текущий размер буфера
+     * Возвращает размер буфера.
+     * @return размер буфера
      */
     public int size()
     {
@@ -113,9 +106,8 @@ public class CircularLogBuffer <T>
     }
 
     /**
-     * Возвращает список, содержащий все элементы буфера.
-     *
-     * @return список элементов буфера
+     * Возвращает все записи из буфера.
+     * @return список всех записей в буфере
      */
     public List<LogEntry> all()
     {
