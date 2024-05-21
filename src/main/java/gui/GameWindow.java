@@ -14,7 +14,8 @@ public class GameWindow extends AbstractWindow implements PropertyChangeListener
 
     private final RobotsLogic logic;
 
-    public GameWindow(RobotsLogic logic) {
+    public GameWindow(RobotsLogic logic)
+    {
         super();
 
         this.logic = logic;
@@ -35,15 +36,17 @@ public class GameWindow extends AbstractWindow implements PropertyChangeListener
         pack();
     }
 
-    public void dispose() {
+    public void dispose()
+    {
         super.dispose();
-
         logic.stopTimer();
     }
 
     @Override
-    public void propertyChange(PropertyChangeEvent evt) {
-        if("changeLocale".equals(evt.getPropertyName())){
+    public void propertyChange(PropertyChangeEvent evt)
+    {
+        if("changeLocale".equals(evt.getPropertyName()))
+        {
             ResourceBundle bundle = (ResourceBundle)evt.getNewValue();
             setTitle(bundle.getString("NewGameWindow"));
         }

@@ -4,9 +4,7 @@ import java.awt.*;
 import java.awt.event.*;
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
-import java.net.ResponseCache;
 import java.util.Locale;
-import java.util.Properties;
 import java.util.ResourceBundle;
 import javax.swing.*;
 
@@ -14,12 +12,12 @@ import State.AbstractWindow;
 import log.Logger;
 
 import model.RobotsLogic;
-import gui.GameWindow;
 
 /**
  * Главное окно приложения, содержащее панель рабочего стола и меню.
  */
-public class MainApplicationFrame extends JFrame {
+public class MainApplicationFrame extends JFrame
+{
 
     /**
      * Текущая локаль для локализации сообщений.
@@ -42,7 +40,8 @@ public class MainApplicationFrame extends JFrame {
     /**
      * Конструктор главного окна приложения.
      */
-    public MainApplicationFrame() {
+    public MainApplicationFrame()
+    {
         // Определяем отступы для размещения окна
         Integer indent = 50;
         Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
@@ -68,15 +67,14 @@ public class MainApplicationFrame extends JFrame {
                 exitApplication();
             }
         });
-
-
     }
 
     /**
      * Создает панель рабочего стола, где отображаются внутренние окна.
      * @return Созданная панель рабочего стола.
      */
-    private JDesktopPane createDesktopPane() {
+    private JDesktopPane createDesktopPane()
+    {
         desktopPane = new JDesktopPane();
         var logic = new RobotsLogic();
 
@@ -89,7 +87,8 @@ public class MainApplicationFrame extends JFrame {
 
 
         // Загружаем состояние каждого окна
-        for (JInternalFrame frame : desktopPane.getAllFrames()) {
+        for (JInternalFrame frame : desktopPane.getAllFrames())
+        {
             AbstractWindow abstractWindow = (AbstractWindow) frame;
             abstractWindow.loadWindow();
         }
@@ -101,7 +100,8 @@ public class MainApplicationFrame extends JFrame {
      * Создает окно для отображения логов.
      * @return Созданное окно для отображения логов.
      */
-    protected LogWindow createLogWindow() {
+    protected LogWindow createLogWindow()
+    {
         LogWindow logWindow = new LogWindow(Logger.getDefaultLogSource());
         Logger.debug(messages.getString("ProtocolIsWorking"));
         return logWindow;
@@ -113,7 +113,8 @@ public class MainApplicationFrame extends JFrame {
      * @param width Ширина окна.
      * @param height Высота окна.
      */
-    protected void addWindow(JInternalFrame frame, int width, int height) {
+    protected void addWindow(JInternalFrame frame, int width, int height)
+    {
         desktopPane.add(frame);
         frame.setSize(width, height);
         if(frame instanceof PropertyChangeListener propertyChangeListener)
@@ -125,7 +126,8 @@ public class MainApplicationFrame extends JFrame {
      * Генерирует строку меню приложения.
      * @return Сгенерированная строка меню.
      */
-    private JMenuBar generateMenuBar() {
+    private JMenuBar generateMenuBar()
+    {
         JMenuBar menuBar = new JMenuBar();
 
         menuBar.add(createFileMenu());
@@ -142,7 +144,8 @@ public class MainApplicationFrame extends JFrame {
      * Создает меню файлов.
      * @return Меню файлов.
      */
-    private JMenu createFileMenu() {
+    private JMenu createFileMenu()
+    {
         var logic = new RobotsLogic();
         JMenu menu = new JMenu(messages.getString("Menu"));
         menu.setMnemonic(KeyEvent.VK_D);
@@ -157,16 +160,12 @@ public class MainApplicationFrame extends JFrame {
             addWindow(window, 150, 350);
         }));
 
-
         menu.add(createMenuItem(messages.getString("Coordinates"), KeyEvent.VK_L, KeyStroke.getKeyStroke(KeyEvent.VK_L, ActionEvent.ALT_MASK), (event) -> {
             RobotInfo window = new RobotInfo(logic);
             addWindow(window, 300, 200);
         }));
 
-
         menu.add(exit());
-
-
 
         return menu;
     }
@@ -179,7 +178,8 @@ public class MainApplicationFrame extends JFrame {
      * @param action Действие элемента меню.
      * @return Созданный элемент меню.
      */
-    private JMenuItem createMenuItem(String text, int mnemonic, KeyStroke accelerator, ActionListener action) {
+    private JMenuItem createMenuItem(String text, int mnemonic, KeyStroke accelerator, ActionListener action)
+    {
         JMenuItem item = new JMenuItem(text);
         item.setMnemonic(mnemonic);
         item.setAccelerator(accelerator);
@@ -191,17 +191,20 @@ public class MainApplicationFrame extends JFrame {
      * Создает меню оформления.
      * @return Меню оформления.
      */
-    private JMenu createLookAndFeelMenu() {
+    private JMenu createLookAndFeelMenu()
+    {
         JMenu lookAndFeelMenu = new JMenu(messages.getString("DisplayMode"));
         lookAndFeelMenu.setMnemonic(KeyEvent.VK_V);
         lookAndFeelMenu.getAccessibleContext().setAccessibleDescription(messages.getString("ModeControl"));
 
-        lookAndFeelMenu.add(createMenuItem(messages.getString("SystemDiagram"), KeyEvent.VK_S, null, (event) -> {
+        lookAndFeelMenu.add(createMenuItem(messages.getString("SystemDiagram"), KeyEvent.VK_S, null, (event) ->
+        {
             setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
             this.invalidate();
         }));
 
-        lookAndFeelMenu.add(createMenuItem(messages.getString("UniversalScheme"), KeyEvent.VK_U, null, (event) -> {
+        lookAndFeelMenu.add(createMenuItem(messages.getString("UniversalScheme"), KeyEvent.VK_U, null, (event) ->
+        {
             setLookAndFeel(UIManager.getCrossPlatformLookAndFeelClassName());
             this.invalidate();
         }));
@@ -213,7 +216,8 @@ public class MainApplicationFrame extends JFrame {
      * Создает меню тестирования.
      * @return Меню тестирования.
      */
-    private JMenu createTestMenu() {
+    private JMenu createTestMenu()
+    {
         JMenu testMenu = new JMenu(messages.getString("Tests"));
         testMenu.setMnemonic(KeyEvent.VK_T);
         testMenu.getAccessibleContext().setAccessibleDescription(messages.getString("TestsCommands"));
@@ -228,7 +232,8 @@ public class MainApplicationFrame extends JFrame {
         return testMenu;
     }
 
-    private JMenu createLanguageMenu() {
+    private JMenu createLanguageMenu()
+    {
         JMenu languageMenu = new JMenu(messages.getString("Language"));
         languageMenu.setMnemonic(KeyEvent.VK_T);
 
@@ -236,13 +241,13 @@ public class MainApplicationFrame extends JFrame {
 
         JMenuItem addLanguageEnglish = new JMenuItem(messages.getString("Translit"));
 
-        addLanguageRussian.addActionListener((event) -> {
+        addLanguageRussian.addActionListener((event) ->
+        {
             changeLocale(new Locale("ru", "RU"));
         });
 
-
-
-        addLanguageEnglish.addActionListener((event) -> {
+        addLanguageEnglish.addActionListener((event) ->
+        {
             changeLocale(Locale.ENGLISH);
         });
 
@@ -257,7 +262,8 @@ public class MainApplicationFrame extends JFrame {
      * Метод для изменения локали приложения и обновления интерфейса в соответствии с новой локалью.
      * @param locale Новая локаль, которая будет установлена.
      */
-    private void changeLocale(Locale locale){
+    private void changeLocale(Locale locale)
+    {
         // Устанавливаем новую локаль
         Locale = locale;
 
@@ -272,7 +278,8 @@ public class MainApplicationFrame extends JFrame {
      * Метод для обновления текстовых компонентов интерфейса приложения на основе переданного ResourceBundle.
      * @param bundle ResourceBundle, содержащий ресурсы для текущей локали.
      */
-    private void updateUIComponents(ResourceBundle bundle) {
+    private void updateUIComponents(ResourceBundle bundle)
+    {
         //Уведомляет всех слушателей о изменении локали и передает новый объект ResourceBundle.
         support.firePropertyChange("changeLocale", null, bundle);
 
@@ -284,8 +291,6 @@ public class MainApplicationFrame extends JFrame {
             menuItem.getItem(1).setText(bundle.getString("LogsWindow"));
             menuItem.getItem(2).setText(bundle.getString("Coordinates"));
             menuItem.getItem(3).setText(bundle.getString("Exit"));
-
-
         }
 
         {
@@ -293,7 +298,6 @@ public class MainApplicationFrame extends JFrame {
             menuItem.setText(bundle.getString("DisplayMode"));
             menuItem.getItem(0).setText(bundle.getString("UniversalScheme"));
             menuItem.getItem(1).setText(bundle.getString("SystemDiagram"));
-
         }
         {
             JMenu menuItem = jMenuBar.getMenu(2);
@@ -308,12 +312,12 @@ public class MainApplicationFrame extends JFrame {
         }
     }
 
-
     /**
      * Устанавливает внешний вид.
      * @param className Название класса внешнего вида.
      */
-    private void setLookAndFeel(String className) {
+    private void setLookAndFeel(String className)
+    {
         try {
             UIManager.setLookAndFeel(className);
             SwingUtilities.updateComponentTreeUI(this);
@@ -325,8 +329,10 @@ public class MainApplicationFrame extends JFrame {
     /**
      * Вызывает диалоговое окно закрытия для каждого окна на панели рабочего стола.
      */
-    private void callCloseDialog(){
-        for (JInternalFrame frame : desktopPane.getAllFrames()) {
+    private void callCloseDialog()
+    {
+        for (JInternalFrame frame : desktopPane.getAllFrames())
+        {
             AbstractWindow abstractWindow = (AbstractWindow) frame;
             abstractWindow.saveWindow();
         }
@@ -335,7 +341,8 @@ public class MainApplicationFrame extends JFrame {
     /**
      * Завершает работу приложения.
      */
-    private void exitApplication() {
+    private void exitApplication()
+    {
         UIManager.put("OptionPane.yesButtonText", messages.getString("Yes"));
         UIManager.put("OptionPane.noButtonText", messages.getString("No"));
 
@@ -343,8 +350,6 @@ public class MainApplicationFrame extends JFrame {
                 messages.getString("ConfirmationExit"), JOptionPane.YES_NO_OPTION);
         callCloseDialog();
     }
-
-
 
     /**
      * Создает элемент меню "Выход".
@@ -364,6 +369,4 @@ public class MainApplicationFrame extends JFrame {
     public void addPropertyChangeListener(PropertyChangeListener listener) {
         support.addPropertyChangeListener(listener);
     }
-
-
 }

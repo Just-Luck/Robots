@@ -14,23 +14,28 @@ import model.Robot;
 import model.RobotsLogic;
 import model.Target;
 
-public class GameVisualizer extends JPanel {
-
+public class GameVisualizer extends JPanel
+{
     private final RobotsLogic logic;
 
-    public GameVisualizer(RobotsLogic logic) {
+    public GameVisualizer(RobotsLogic logic)
+    {
         this.logic = logic;
 
-        logic.addActionToTimer(new TimerTask() {
+        logic.addActionToTimer(new TimerTask()
+        {
             @Override
-            public void run() {
+            public void run()
+            {
                 repaint();
             }
         }, 50);
 
-        addMouseListener(new MouseAdapter() {
+        addMouseListener(new MouseAdapter()
+        {
             @Override
-            public void mouseClicked(MouseEvent e) {
+            public void mouseClicked(MouseEvent e)
+            {
                 Point clickPoint = e.getPoint();
 
                 logic.setTarget(new Target(clickPoint.getX(), clickPoint.getY()));
@@ -43,28 +48,31 @@ public class GameVisualizer extends JPanel {
         setDoubleBuffered(true);
     }
 
-    private static void fillOval(Graphics g, int centerX, int centerY, int diam1, int diam2) {
+    private static void fillOval(Graphics g, int centerX, int centerY, int diam1, int diam2)
+    {
         g.fillOval(centerX - diam1 / 2, centerY - diam2 / 2, diam1, diam2);
     }
 
-    private static void drawOval(Graphics g, int centerX, int centerY, int diam1, int diam2) {
+    private static void drawOval(Graphics g, int centerX, int centerY, int diam1, int diam2)
+    {
         g.drawOval(centerX - diam1 / 2, centerY - diam2 / 2, diam1, diam2);
     }
 
     @Override
-    public void paint(Graphics g) {
+    public void paint(Graphics g)
+    {
         super.paint(g);
         Graphics2D g2d = (Graphics2D) g;
         drawRobot(g2d, logic.getRobot());
         drawTarget(g2d, logic.getTarget());
     }
 
-    private void drawRobot(Graphics2D g, Robot robot) {
+    private void drawRobot(Graphics2D g, Robot robot)
+    {
         int robotCenterX = (int) Math.round(robot.getPosition().getX());
         int robotCenterY = (int) Math.round(robot.getPosition().getY());
 
-        AffineTransform t = AffineTransform.getRotateInstance(robot.getDirection(), robotCenterX,
-                robotCenterY);
+        AffineTransform t = AffineTransform.getRotateInstance(robot.getDirection(), robotCenterX, robotCenterY);
         g.setTransform(t);
 
         g.setColor(Color.MAGENTA);
@@ -78,7 +86,8 @@ public class GameVisualizer extends JPanel {
         drawOval(g, robotCenterX + 10, robotCenterY, 5, 5);
     }
 
-    private void drawTarget(Graphics2D g, Target target) {
+    private void drawTarget(Graphics2D g, Target target)
+    {
         AffineTransform t = AffineTransform.getRotateInstance(0, 0, 0);
         g.setTransform(t);
 
@@ -87,6 +96,4 @@ public class GameVisualizer extends JPanel {
         g.setColor(Color.BLACK);
         drawOval(g, (int) target.getPosition().getX(), (int) target.getPosition().getY(), 5, 5);
     }
-
-
 }

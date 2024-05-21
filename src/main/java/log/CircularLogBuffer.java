@@ -7,14 +7,14 @@ import java.util.List;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.ReentrantLock;
 
-
 /**
  * Кольцевой буфер журнала, который реализует хранение элементов в кольцевом массиве.
  * Он обеспечивает потокобезопасность при многопоточном доступе к буферу.
  *
  * @param <T> тип элементов, хранимых в буфере
  */
-public class CircularLogBuffer <T> {
+public class CircularLogBuffer <T>
+{
     private final T[] buffer;
     private int size;
     private int start;
@@ -28,7 +28,8 @@ public class CircularLogBuffer <T> {
      *
      * @param capacity емкость буфера
      */
-    public CircularLogBuffer(int capacity) {
+    public CircularLogBuffer(int capacity)
+    {
         buffer = (T[]) new Object[capacity];
         size = 0;
         start = 0;
@@ -44,10 +45,13 @@ public class CircularLogBuffer <T> {
      *
      * @param entry элемент, который необходимо добавить в буфер
      */
-    public void append(LogEntry entry) {
+    public void append(LogEntry entry)
+    {
         lock.lock();
-        try {
-            if (size == buffer.length) {
+        try
+        {
+            if (size == buffer.length)
+            {
                 start = (start + 1) % buffer.length;
                 size--; // Уменьшаем размер буфера при добавлении нового элемента при полном буфере
             }
@@ -55,11 +59,11 @@ public class CircularLogBuffer <T> {
             end = (end + 1) % buffer.length;
             size++;
             notEmpty.signal();
-        } finally {
+        } finally
+        {
             lock.unlock();
         }
     }
-
 
     /**
      * Возвращает итератор, позволяющий перебирать элементы буфера начиная с указанного индекса.
@@ -68,20 +72,25 @@ public class CircularLogBuffer <T> {
      * @param count количество элементов, которые нужно вернуть
      * @return итератор, позволяющий перебирать элементы буфера
      */
-    public Iterable<LogEntry> range(int startFrom, int count) {
+    public Iterable<LogEntry> range(int startFrom, int count)
+    {
         lock.lock();
-        try {
-            if (startFrom < 0 || startFrom >= size) {
+        try
+        {
+            if (startFrom < 0 || startFrom >= size)
+            {
                 return Collections.emptyList();
             }
             int index = (start + startFrom) % buffer.length;
             List<LogEntry> result = new ArrayList<>();
-            for (int i = 0; i < count && i < size; i++) {
+            for (int i = 0; i < count && i < size; i++)
+            {
                 result.add((LogEntry) buffer[index]);
                 index = (index + 1) % buffer.length;
             }
             return result;
-        } finally {
+        } finally
+        {
             lock.unlock();
         }
     }
@@ -91,46 +100,55 @@ public class CircularLogBuffer <T> {
      *
      * @return текущий размер буфера
      */
-    public int size() {
+    public int size()
+    {
         lock.lock();
-        try {
+        try
+        {
             return size;
-        } finally {
+        } finally
+        {
             lock.unlock();
         }
     }
-
-
 
     /**
      * Возвращает список, содержащий все элементы буфера.
      *
      * @return список элементов буфера
      */
-    public List<LogEntry> all() {
+    public List<LogEntry> all()
+    {
         lock.lock();
-        try {
+        try
+        {
             List<LogEntry> result = new ArrayList<>();
-            for (int i = 0; i < size; i++) {
+            for (int i = 0; i < size; i++)
+            {
                 result.add((LogEntry) buffer[(start + i) % buffer.length]);
             }
             return result;
-        } finally {
+        } finally
+        {
             lock.unlock();
         }
     }
+
     /**
      * Очищает буфер.
      */
-    public void clear() {
+    public void clear()
+    {
         lock.lock();
-        try {
+        try
+        {
             Arrays.fill(buffer, null);
             size = 0;
             start = 0;
             end = 0;
             notFull.signalAll();
-        } finally {
+        } finally
+        {
             lock.unlock();
         }
     }

@@ -1,5 +1,6 @@
 package State;
-public interface WithState {
+public interface WithState
+{
     void saveWindow();
     void loadWindow();
 }

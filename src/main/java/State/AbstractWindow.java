@@ -6,7 +6,8 @@ import javax.swing.JInternalFrame;
 /**
  * Абстрактный класс, представляющий оконное приложение, которое может сохранять и загружать свое состояние.
  */
-public abstract class AbstractWindow extends JInternalFrame implements WithState {
+public abstract class AbstractWindow extends JInternalFrame implements WithState
+{
     private final String prefixWindowPreferences;
     private final String prefixWindowPositionX;
     private final String prefixWindowPositionY;
@@ -16,7 +17,8 @@ public abstract class AbstractWindow extends JInternalFrame implements WithState
     /**
      * Конструктор класса. Инициализирует префиксы для имен ключей.
      */
-    public AbstractWindow() {
+    public AbstractWindow()
+    {
         super();
         this.prefixWindowPreferences = formatTitle("window preferences");
         this.prefixWindowPositionX = formatTitle("position x");
@@ -40,7 +42,8 @@ public abstract class AbstractWindow extends JInternalFrame implements WithState
      * @param title исходный заголовок
      * @return отформатированный заголовок
      */
-    private String formatTitle(String title) {
+    private String formatTitle(String title)
+    {
         String cased = title.toUpperCase();
         return cased.replaceAll(" +", "_");
     }
@@ -49,7 +52,8 @@ public abstract class AbstractWindow extends JInternalFrame implements WithState
      * Сохраняет текущее состояние окна в объекте Preferences.
      */
     @Override
-    public void saveWindow() {
+    public void saveWindow()
+    {
         Preferences preferences = getPreferences();
 
         String title = formatTitle(getTitle());
@@ -64,7 +68,8 @@ public abstract class AbstractWindow extends JInternalFrame implements WithState
      * Загружает состояние окна из объекта Preferences и восстанавливает его.
      */
     @Override
-    public void loadWindow() {
+    public void loadWindow()
+    {
         Preferences preferences = getPreferences();
         final int missing = -1;
 
@@ -75,9 +80,7 @@ public abstract class AbstractWindow extends JInternalFrame implements WithState
         int width = preferences.getInt(prefixWindowSizeWidth + title, missing);
         int height = preferences.getInt(prefixWindowSizeHeight + title, missing);
 
-        if (x == -1 || y == -1 || width == -1 || height == -1) {
-            return;
-        }
+        if (x == -1 || y == -1 || width == -1 || height == -1) return;
 
         setBounds(x, y, width, height);
     }

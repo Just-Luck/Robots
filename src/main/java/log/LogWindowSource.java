@@ -3,7 +3,6 @@ package log;
 import java.util.ArrayList;
 import java.util.Collections;
 
-
 /**
  * Что починить:
  * 1. Этот класс порождает утечку ресурсов (связанные слушатели оказываются
